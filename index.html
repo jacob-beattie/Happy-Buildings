@@ -1,0 +1,396 @@
+<!doctype html>
+
+<html>
+  <body ng-app="myApplication" ng-controller="myController" ng-cloak>
+    <img src="images/building-image.jpg" id="backgroundImage">
+
+    <head>
+      <link rel="stylesheet" type="text/css" href="lib/style.css">
+      <script src="lib/script.js"></script>
+      <script src="https://kit.fontawesome.com/db4c69654a.js" crossorigin="anonymous"></script>
+    </head>
+
+   
+    <!--Log in form section of the code-->
+
+    <div class="LogInForm" ng-show="logInPage">
+       <h2 style="font-size:25px">HAPPY BUILDINGS LOG IN</h2>
+
+       <img src="images/LogInImage.png" id="LogInIcon">
+
+      <form name="UserAndPassword">
+        <input type="text" id="Username" placeholder="Username" ng-model="Username"/>
+        <p id="emptyLogin">Username is empty</p><br><br>
+
+        <input type="password" id="Password" placeholder="Password" ng-model="Password"/> 
+        <p id="emptyPassword">Password is empty</p>
+        <p id="caps">Caps lock is ON</p><br><br>
+        
+        <div id="rememberMeCheck">
+          <input type="checkbox" id="RememberMe"/>
+          <label for="RememberMe"> Remember me </label>
+        </div>
+
+        <br><br><br>
+
+        <input type="submit" id="loginButton" value="Login" ng-click="validateForm()"> 
+
+        <div id="feedback">{{feedback}}</div>
+
+      </form>
+    </div>
+
+
+    <!--Building Directory section of the code-->
+
+
+    <div id="buildingDirectory" ng-show="buildingDirectory">
+
+      <button id="logOut" ng-click="logOut()"><i class="fas fa-sign-out-alt"></i></button>
+
+      <br><br>
+
+      <h2 style="font-size:30px"> Building Directory</h2>
+
+      <table align="center" ng-show="nonOwnerView">
+        <tr>
+          <th>ID</th>
+          <th>Owner</th>
+          <th colspan="2">Address</th>
+        </tr>
+
+        <button id="addBuildingButton" ng-show="managerAccess" ng-click="createBuilding()">Add Building</button>
+
+        <tr ng-repeat="building in buildingDir">
+          <td>{{building.ID}}</td>
+          <td>{{building.Owner}}</td>
+          <td>{{building.Address}}</td>
+          <td style="text-align:center"><input type="button" class="viewButtons" value="View"  ng-click="showBuildingInformation(building)"/></td>
+        </tr>
+      </table>
+
+      <!--Seperate table that is only shown for buildings the owner is related to-->
+      <table align="center" ng-show="ownerView">
+        <tr>
+          <th>ID</th>
+          <th>Owner</th>
+          <th colspan="2">Address</th>
+        </tr>
+
+        <tr ng-repeat="building in buildingDir | filter: {Owner:ownerName}">
+          <td>{{building.ID}}</td>
+          <td>{{building.Owner}}</td>
+          <td>{{building.Address}}</td>
+          <td style="text-align:center"><input type="button" class="viewButtons" value="View"  ng-click="showBuildingInformation(building)"/></td>
+        </tr>
+      </table>
+    </div>
+
+
+
+    <!-------New building form-------->
+
+
+
+    <div id="addNewBuilding" ng-show="addNewBuilding">
+
+      <div class="menuBar">
+          <button class="go-back" ng-click="showBuildingDirectory()"><i class="fas fa-arrow-circle-left"></i></button>
+          <button class="home-button" ng-click="showBuildingDirectory()"><i class="fa fa-home"></i></button>
+      </div>
+
+      <br>
+
+      <h1>Add Building</h1>
+
+      ID:<input type="number" ng-model="ID"/>
+
+      Owner:<input ng-model="Owner"/>
+
+      Address:<input type="text" ng-model="Address"/>
+
+      Building Type:<input type="text" ng-model="BuildingType"/>
+        
+      Construction Date:<input type="datetime-local" ng-model="ConstructionDate"/>
+
+      <button id="addProjectButton" ng-click="addBuilding()">Submit</button>
+    </div>
+
+
+
+    <!-------Building Info-------->
+
+      <div class="info" ng-show="buildingPage">
+
+        <div class="menuBar">
+        <button class="go-back" ng-click="showBuildingDirectory()"><i class="fas fa-arrow-circle-left"></i></button>
+        <button class="home-button" ng-click="showBuildingDirectory()"><i class="fa fa-home"></i></button>
+        </div>
+
+        <br><br>
+
+        <h1> Building Information </h1>
+
+        <br>
+
+        <span id="buildingType">Type of Building: </span>
+        {{targetBuilding.BuildingType}}
+        
+
+        <br><br>
+        
+        <span id="constructionDate">Date of Construction: </span>
+         {{targetBuilding.ConstructionDate}}
+
+        <br><br>
+            
+        <div id="projectStuff">
+          <h3 id="projectTitle">Projects</h3>
+          <button id="addProject" ng-show="managerAccess" ng-click="createProject()">Add Project</button>
+        </div>
+
+        <div id="buildingInfo">
+          <table align="center">
+            <tr>
+              <th>Project ID</th>
+              <th>Status</th>
+              <th colspan="2"></th>
+            </tr>
+
+            <tr ng-repeat="project in projectList | filter: {BuildingID:filteredBuilding}">
+              <td>{{project.ProjectID}}</td>
+              <td>{{project.Status}}</td>
+              <td style="text-align:center"><input type="button" class="viewButtons" value="View" ng-click="showProjectForm(project)"></td>
+              <td ng-show="managerAccess"><input type="button" class="deleteButtons" ng-click="deleteProject(project, $index)" value="Delete"/></td>
+            </tr>  
+          </table>
+        </div>
+      </div>
+
+
+
+    <!-------Project Form-------->
+
+      <div id="projectForm" ng-show="projectForm">
+        <div class="menuBar">
+          <button class="go-back" ng-click="showBuildingInformation()" ng-show="nonContractorAccess"><i class="fas fa-arrow-circle-left"></i></button>
+          <button class="go-back" ng-click="showContractorPage()" ng-show="contractorAccess"><i class="fas fa-arrow-circle-left"></i></button>
+          <button class="home-button" ng-click="showBuildingDirectory()" ng-show="nonContractorAccess"><i class="fa fa-home"></i></button>
+        </div>
+
+
+
+        <br><br>
+
+        <h3>Project Details</h3> 
+
+        <form>
+          <label for="projectName">Name: </label> {{targetProject.Name}}
+          
+
+          <br><br>
+
+          <label for="status">Status: </label> {{targetProject.Status}}
+
+          <br><br>
+
+          <span id="startDate"><b>Start Date:</b> {{targetProject.StartDate}}</span>
+          <span id="finishDate"><b>Finish Date:</b> {{targetProject.EndDate}}</span>
+
+          <br><br>
+
+          <div id="contactPerson"><b>Contact Person:</b> {{targetProject.ContactPerson}}</div>
+
+          <br>
+
+          <label for="projectManager">Project Manager: </label>  
+          {{targetProject.ProjectManager}}
+          
+
+          <br><br>
+
+          <span id="contractor"><b>Contractor:</b> {{targetProject.Contractor}}</span>
+
+          <br>
+
+          <div class="worksAndComments">
+            <div class="worksDiv">
+              <h3>Works</h3>
+              <table id="works">
+                <tr>
+                  <th><input type="checkbox" onclick="return false;"></th>
+                  <th align="left">Type</th>
+                  <th align="left">Status</th>
+                </tr>
+                <tr ng-repeat="work in targetProject.Works">
+                  <td><input type="checkbox"></td>
+                  <td>{{work.Type}}</td>
+                  <td>{{work.Status}}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="commentsDiv">
+              <h3>Comments</h3>
+
+              <button id="addCommentGoTo" ng-click="addAComment()">Add</button>
+              <button ng-show="managerAccess" id="deleteComment">Delete</button>
+
+              <table id="comments">
+                <tr ng-repeat="comment in targetProject.Comments">
+                  <td class="removeRow"><button class="removeButton">X</button></td>
+                  <td>{{comment.Author}}</td>
+                  <td>{{comment.Text}} </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <br><br>
+
+          <button id="editButton" ng-click="updateTheProject()" ng-show="managerAccess">Edit</button>
+        </form>
+      </div>
+
+
+      <!-------New Project Form-------->
+
+      <div id="addNewProject" ng-show="addNewProject">
+        <div class="menuBar">
+          <button class="go-back" ng-click="showBuildingInformation(targetBuilding)"><i class="fas fa-arrow-circle-left"></i></button>
+          <button class="home-button" ng-click="showBuildingDirectory()"><i class="fa fa-home"></i></button>
+        </div>
+
+        <br>
+
+        <h1>Add Project</h1>
+
+        Project ID:<input type="number" ng-model="ProjectID"/>
+
+        Name:<input ng-model="Name" />
+
+        Building ID: <input type="number" ng-model="BuildingID" />
+
+        Status: <select name="status" id="addProjectStatus" ng-model="Status">
+                  <option value="Current">Current</option>
+                  <option value="Closed">Closed</option>
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Unscheduled">Unscheduled</option>
+                </select>
+
+        Start Date: <input type="datetime-local" value="{{StartDate}}" ng-model="StartDate" />
+
+        End Date: <input type="datetime-local" value="{{EndDate}}" ng-model="EndDate" />
+
+        ContactPerson: <input ng-model="ContactPerson" />
+
+        ProjectManager: <input ng-model="ProjectManager" />
+
+        Contractor: <input ng-model="Contractor" />
+
+        <button id="addProjectButton" ng-click="addProject()">Submit</button>
+      </div>
+
+
+
+      <!-------Update Project Form-------->
+
+      <div id="updateProject" ng-show="updateProject">
+        <div class="menuBar">
+          <button class="go-back" ng-click="showProjectForm(targetProject)"><i class="fas fa-arrow-circle-left"></i></button>
+          <button class="home-button" ng-click="showBuildingDirectory()"><i class="fa fa-home"></i></button>
+        </div>
+
+        <br>
+
+        <h1>Update Project</h1>
+
+        Project ID:<input type="number" ng-model="ProjectIDUpdate" value="{{targetProject.ProjectID}}"/>
+
+        Name:<input type="text" ng-model="NameUpdate" value="{{targetProject.Name}}"/>
+
+        Building ID:<input type="number" ng-model="BuildingIDUpdate" value="{{targetProject.BuildingID}}"/>
+
+        Status:<select name="status" id="addProjectStatus" ng-model="StatusUpdate" value="{{targetProject.Status}}">
+                  <option value="Current">Current</option>
+                  <option value="Closed">Closed</option>
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Unscheduled">Unscheduled</option>
+                </select>
+        
+        Start Date:<input type="datetime-local" ng-model="StartDateUpdate" />
+
+        End Date:<input type="datetime-local" ng-model="EndDateUpdate" />
+
+        Contact Person:<input type="text" ng-model="ContactPersonUpdate" value="{{targetProject.ContactPerson}}"/>
+
+        Project Manager:<input type="text" ng-model="ProjectManagerUpdate" value="{{targetProject.ProjectManager}}"/>
+
+        Contractor:<input type="text" ng-model="ContractorUpdate" value="{{targetProject.Contractor}}"/>
+
+        <button id="addProjectButton" ng-click="editProject()">Update</button>
+      </div>
+
+      <!-------Add comment Form-------->
+
+      <div id="addComment" ng-show="addComment">
+        <div class="menuBar">
+          <button class="go-back" ng-click="showProjectForm(targetProject)"><i class="fas fa-arrow-circle-left"></i></button>
+          <button class="home-button" ng-click="showBuildingDirectory()"><i class="fa fa-home"></i></button>
+        </div>
+
+        <br>
+
+        <h1>Add Comment</h1>
+
+        Author:<select name="author" ng-model="Author">
+                <option value="Owner">Owner</option>
+                <option value="Manager">Manager</option>
+                <option value="Contractor">Contractor</option>
+              </select>
+
+        Text:<textarea rows="4" ng-model="Text"></textarea>
+
+        <br>
+
+        <button id="addCommentButton" ng-click="addCommentSubmit()">Add</button>
+
+      </div>
+
+
+
+      <!-------Contractor Page-------->
+
+
+
+      <div id="contractorPage" ng-show="contractorPage">
+
+         <button id="logOut" ng-click="logOut()"><i class="fas fa-sign-out-alt"></i></button>
+
+        <br><br>
+
+        <h2 style="font-size:30px"> Contractor Directory</h2>
+
+        <table align="center">
+          <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+
+          <tr ng-repeat="project in projectList | filter: {Contractor:contractorName}">
+            <td>{{project.ProjectID}}</td>
+            <td>{{project.Status}}</td>
+            <td style="text-align:center"><input type="button" class="viewButtons" value="View" ng-click="showProjectForm(project)"></td>
+          </tr>
+        </table>
+
+
+
+      </div>
+
+
+
+  </body>
+</html>
+
